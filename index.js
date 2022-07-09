@@ -1,4 +1,7 @@
-const objects = [];
+let objects = [];
+window.epr = [];
+window.ekr = [];
+window.er = [];
 
 class Box {
   x = 20;
@@ -9,6 +12,8 @@ class Box {
   mass = 1;
   velX = 0;
   velY = 0;
+  reverse = false;
+  print = true;
 
   constructor() {
     objects.push(this);
@@ -17,10 +22,14 @@ class Box {
   draw() {
     ctx.fillStyle = this.color;
     ctx.fillRect(this.x, this.y, this.width, this.height);
-    console.log(
-      "velocity",
-      Math.sqrt(Math.pow(this.velX, 2) + Math.pow(this.velY, 2))
-    );
+    if (this.print) {
+      const height = 900 - this.height - this.y;
+
+      const ep = height * 9.8 * 40 * this.mass;
+      const ek = (this.mass * this.velY * this.velY) / 2;
+
+      console.log("Ep", ep, "Ek", ek, "E", ep + ek);
+    }
   }
 
   move(force, angle) {
@@ -36,6 +45,12 @@ class Box {
 
     this.x += ((prevVelX + this.velX) / 2) * deltaTime;
     this.y += ((prevVelY + this.velY) / 2) * deltaTime;
+
+    if (this.reverse && this.y < 400) this.reverse = false;
+    else if (!this.reverse && this.y >= 900 - this.height) {
+      this.velY = -this.velY;
+      this.reverse = true;
+    }
   }
 }
 
@@ -43,12 +58,13 @@ const frame = () => {
   window.request = requestAnimationFrame(frame);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  box.move(box.mass * 9.8 * 10, Math.PI / 4);
+  box.move(box.mass * 9.8 * 40, Math.PI / 2);
 
   objects.forEach((o) => o.draw());
 };
 
 const simulate = () => {
+  objects = [];
   console.log("simulating");
 
   if (window.request) {
@@ -57,6 +73,13 @@ const simulate = () => {
   }
 
   window.box = new Box();
+  const bottom = new Box();
+  bottom.height = 10;
+  bottom.width = 1000;
+  bottom.x = 5;
+  bottom.y = 900;
+  bottom.color = "green";
+  bottom.print = false;
 
   frame();
 };
